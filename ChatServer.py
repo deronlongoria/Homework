@@ -46,13 +46,13 @@ class Server:
         try:
             file=open("register.txt")
             r=file.read()
-            regs=r.split(";")
-            for reg in regs:    
-                user=literal_eval(reg)
-                if user["id"] ==id:
-                    connection.send(bytes("{\"status\": 1,\"message:\" " + id + " is already used}",'utf-8'))
-                    break
             if not r == "":
+                regs=r.split(";")
+                for reg in regs:    
+                    user=literal_eval(reg)
+                    if user["id"] ==id:
+                        connection.send(bytes("{\"status\": 1,\"message:\" " + id + " is already used}",'utf-8'))
+                        break
                 r+=";"
             r=r+"{"+"\"id\":\""+id+"\",\"password\":\""+password+"\",\"friend\":[],\"invite\":[]}"
             file.write(r)
