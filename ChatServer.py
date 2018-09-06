@@ -14,49 +14,82 @@ class Server:
         print ('Server start at: %s:%s' %(self.HOST, self.PORT))
         print ('wait for connection...')
 
+    def getuserid(self,token):
+        file=open("login.txt")
+        logins=literal_eval(file.read())
+        userid=logins[id]
+        file.close()
+        return userid
+
+    def dictostr(self,d):
+        s="{"
+        for k,v in d.items():
+            if not s=="{":
+                s+=","
+            if type(v)==list:
+                s=s+"\""+k+"\":"+self.listtostr(v)
+            elif type(v)==str:
+                s=s+"\""+str(k)+"\""+":"+"\""+str(v)+"\""
+        s+="}"
+        return s
+
+    def listtostr(self,l):
+        s="["
+        for i in l:
+            if not s == "[":
+                s+=","
+            s=s+"\""+i+"\""
+        s+="]"
+        return s
+
     def register(self,connection,id,password):
         try:
             file=open("register.txt")
-            regs=literal_eval(file.read())
-            if not id in regs:
-                regs[id]=password
-                s="{"
-                for i,p in regs:
-                    s+=i+":"+p
-                s+="}"
-                file.write(s)
-                connection.send(bytes("{\"status\": 0}",'utf-8'))
-            else:
-                connection.send(bytes("{\"status\": 1,\"message:\" " + id + " is already used}",'utf-8'))
+            r=file.read()
+            regs=r.split(";")
+            for reg in regs:    
+                user=literal_eval(reg)
+                if user["id"] ==id:
+                    connection.send(bytes("{\"status\": 1,\"message:\" " + id + " is already used}",'utf-8'))
+                    break
+            if not r == "":
+                r+=";"
+            r=r+"{"+"\"id\":\""+id+"\",\"password\":\""+password+"\",\"friend\":[],\"invite\":[]}"
+            file.write(r)
+            connection.send(bytes("{\"status\": 0}",'utf-8'))
         finally:
             file.close()
 
     def delete(self,connection,id,password):
         try:
-            rfile=open("register.txt")
-            regs=literal_eval(rfile.read())
-            del regs[id]
-            s="{"
-            for i,p in regs:
-                s+=(i+":"+p)
-            s+="}"
-            rfile.write(s)
-            lfile=open("login.txt")
-            logins=literal_eval(lfile.read())
-            del logins[id]
-            s="{"
-            for i,p in logins:
-                s+=(i+":"+p)
-            s+="}"
-            rfile.write(s)
-
+            userid=self.getuserid(id)
+            file=open("register.txt")
+            r=file.read()
+            regs=r.split(";")
+            for reg in regs:
+                rdic=literal_eval(reg)
+                if rdic["id"]==userid:
+                    regs.remove(reg)
+            s=""
+            for i in regs:
+                if not s=="":
+                    s+=";"
+                s+=i
+            file.write(s)
         finally:
-            rfile.close()
+            file.close()
 
     def login(self,connection,id,password):
         print("")
+
     def logout(self,connection,id):
-        print("")
+        file=open("login.txt")
+        logins=literal_eval(file.read())
+        del logins[id]
+        s=self.dictostr(logins)
+        file.write(s)
+        file.close()
+    
     def invite(self,connection,user,id):
         print("")
     def list_invite(self,connection,user):
@@ -66,7 +99,13 @@ class Server:
     def list_friend(self,connection,user):
         print("")
     def post(self,connection,user,message):
-        print("")
+        userid= self.getuserid(id)
+        file=open("post.txt")
+        posts=file.read()
+        if not posts=="":
+            posts+=";"
+        posts=posts+"{\""+userid+"\":\""+message+"\"}"
+        file.write(posts)
     def receive_post(self,connection,user):
         print("")
 
@@ -88,7 +127,7 @@ class Server:
         elif command[0]=="list_friend":
             self.list_friend(connection,command[1])
         elif command[0]=="post":
-            self.post(connection,command[1],' '.join(command[2:]))
+            self.post(connection,command[1]," ".join(command[2:]))
         elif command[0]=="receive_post":
             self.receive_post(connection,command[1])
      

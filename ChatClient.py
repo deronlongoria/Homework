@@ -15,14 +15,16 @@ class Client:
             if "register" in cmd or "login" in cmd : 
                 self.s.send(bytes(cmd,'utf-8'))
             elif "exit" in cmd.lower():
-                print("Exit")
                 sys.exit()
             else:
                 if self.login :    
                     if "delete" in cmd :
                         self.Token=""
                         self.login=False
-                    
+                    l=cmd.split()
+                    lcommand=l[0]+" "+self.token+" "
+                    rcommand=" ".join(l[2:])
+                    self.s.send(bytes(lcommand+rcommand,'utf-8'))
                 else :
                     print("Not log in yet")    
     

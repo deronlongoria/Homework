@@ -1,0 +1,1 @@
+{"id":"usera","password":"123","friend":["ccc"],"invite":["aaa","bbb"]};{...}
